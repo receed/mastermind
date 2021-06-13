@@ -8,7 +8,12 @@ import javax.swing.JLabel
 import kotlin.math.max
 import kotlin.math.min
 
-class ImageLabel(private val image: BufferedImage) : JLabel() {
+class ImageLabel(image: BufferedImage) : JLabel() {
+    var image = image
+        set(value) {
+            field = value
+            repaint()
+        }
     private fun getScaledInstance(image: BufferedImage, targetWidth: Int, targetHeight: Int): BufferedImage {
         var result = image
         while (result.width != targetWidth || result.height != targetHeight) {
