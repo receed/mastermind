@@ -1,7 +1,5 @@
 import java.awt.Graphics
-import javax.swing.AbstractButton
-import javax.swing.JComponent
-import javax.swing.JRadioButton
+import javax.swing.*
 import javax.swing.plaf.basic.BasicRadioButtonUI
 
 class RoundRadioButtonUI : BasicRadioButtonUI() {
@@ -21,5 +19,25 @@ class RoundRadioButtonUI : BasicRadioButtonUI() {
             else 3
         } else 0
         RoundUI.paint(g, c, borderWidth)
+    }
+
+    override fun installListeners(button: AbstractButton?) {
+        super.installListeners(button)
+        if (button is JRadioButton) {
+            button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "Previous")
+            button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "Next")
+            button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "Previous")
+            button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "Next")
+        }
+    }
+
+    override fun uninstallListeners(button: AbstractButton?) {
+        super.uninstallListeners(button)
+        if (button is JRadioButton) {
+            button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(KeyStroke.getKeyStroke("UP"))
+            button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(KeyStroke.getKeyStroke("DOWN"))
+            button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(KeyStroke.getKeyStroke("LEFT"))
+            button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(KeyStroke.getKeyStroke("RIGHT"))
+        }
     }
 }

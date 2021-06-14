@@ -1,12 +1,15 @@
 import java.awt.*
 import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
-import java.awt.event.KeyListener
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.*
+import javax.swing.plaf.basic.BasicRadioButtonUI
+import kotlin.math.max
+import kotlin.properties.Delegates
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 fun BufferedImage.color(color: Color): BufferedImage {
     val colored = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
@@ -19,6 +22,13 @@ fun BufferedImage.color(color: Color): BufferedImage {
     return colored
 }
 
+inline fun makeAction(crossinline action: (ActionEvent) -> Unit): AbstractAction {
+    return object : AbstractAction() {
+        override fun actionPerformed(event: ActionEvent) =
+            action(event)
+    }
+}
+
 class Board(private val game: Game, private val application: Application) : JPanel() {
     companion object {
         private const val B_WIDTH = 200
@@ -27,14 +37,17 @@ class Board(private val game: Game, private val application: Application) : JPan
         private val positionMatchPeg = pegImage.color(Color.decode("#d32f2f"))
         private val colorMatchPeg = pegImage.color(Color.decode("#eceff1"))
         private val noMatchPeg = pegImage.color(Color.decode("#90a4ae"))
-
         private val colors =
             listOf("#ff6e40", "#eeff41", "#b2ff59", "#18ffff", "#536dfe", "#e040fb", "#ff5252").map { Color.decode(it) }
     }
 
     private var currentAttempt = 0
-    private var currentPeg = 0
     private val guessPegs = Array(game.attemptCount) { Array(game.pegCount) { JRadioButton() } }
+    private var currentPeg = 0
+        set(value) {
+            field = if (value == game.pegCount) 0 else value
+            guessPegs[currentAttempt][field].isSelected = true
+        }
     private val answerPegs = Array(game.attemptCount) { Array(game.pegCount) { ImageLabel(noMatchPeg) } }
     private val colorButtons = Array(game.colorCount) { JButton() }
     private val guessButton = JButton("Make a guess").apply { isEnabled = false }
@@ -80,13 +93,12 @@ class Board(private val game: Game, private val application: Application) : JPan
                     gridx = column
                     gridy = row * 2
                     gridheight = 2
-                    weightx = 1.0
-                    weighty = 1.0
+                    weightx = 2.0
+                    weighty = 2.0
                     insets = Insets(5, 5, 5, 5)
                 }
                 add(holeButton, constraints)
                 buttonGroup.add(holeButton)
-
 
                 constraints.apply {
                     gridx = game.pegCount + column % answerPegsPerRow
@@ -107,24 +119,19 @@ class Board(private val game: Game, private val application: Application) : JPan
                     guessPegs[currentAttempt][currentPeg].foreground = foreground
                     guess[currentPeg] = colorIndex
                     currentPeg++
-                    if (currentPeg == game.pegCount)
-                        currentPeg = 0
-                    guessPegs[currentAttempt][currentPeg].isSelected = true
                 }
                 val command = "click"
                 getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke((colorIndex + 1).toString()), command)
-                actionMap.put(command, object : AbstractAction() {
-                    override fun actionPerformed(event: ActionEvent?) {
-                        this@apply.doClick()
-                    }
+                actionMap.put(command, makeAction {
+                    this@apply.doClick()
                 })
             }
             constraints.apply {
                 gridx = game.pegCount + answerPegsPerRow
                 gridy = colorIndex * 2
                 gridheight = 2
-                weightx = 1.0
-                weighty = 1.0
+                weightx = 2.0
+                weighty = 2.0
                 insets = Insets(5, 5, 5, 5)
             }
             add(colorButton, constraints)
@@ -144,7 +151,6 @@ class Board(private val game: Game, private val application: Application) : JPan
                 for (pegIndex in 0 until game.pegCount)
                     guess[pegIndex] = null
                 currentPeg = 0
-                guessPegs[currentAttempt][currentPeg].isSelected = true
             } else {
                 val message = "You ${if (game.result == Game.Result.WIN) "win" else "lose"}. Play another game?"
                 val playAgain =
@@ -158,17 +164,16 @@ class Board(private val game: Game, private val application: Application) : JPan
         guessButton.apply {
             val command = "guess"
             getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), command)
-            actionMap.put(command, object : AbstractAction() {
-                override fun actionPerformed(event: ActionEvent?) {
-                    this@apply.doClick()
-                }
+            actionMap.put(command, makeAction {
+                this@apply.doClick()
             })
         }
         constraints.apply {
             gridx = 0
-            gridy = game.attemptCount * 2
+            gridy = max(game.attemptCount, game.colorCount) * 2
             gridheight = 1
             gridwidth = GridBagConstraints.REMAINDER
+            weighty = 2.0
         }
         add(guessButton, constraints)
     }

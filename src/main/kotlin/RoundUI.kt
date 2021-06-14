@@ -7,11 +7,6 @@ object RoundUI {
     private val JComponent.diameter
         get() = min(width, height)
 
-    fun getBounds(c: JComponent): Rectangle {
-        val diameter = c.diameter
-        return Rectangle((c.width - diameter) / 2, (c.height - diameter) / 2, diameter, diameter)
-    }
-
     fun contains(c: JComponent?, x: Int, y: Int): Boolean {
         return Point(c!!.width, c.height).distance(Point(x * 2, y * 2)) < c.diameter
     }
