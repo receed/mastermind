@@ -1,11 +1,15 @@
 import kotlin.math.min
 
-class Game(val attemptCount: Int = 8, val pegCount: Int = 4, val colorCount: Int = 6) {
-    val correctCode = List(pegCount) { kotlin.random.Random.nextInt(colorCount) }
-    val correctOccurrences = countOccurrences(correctCode)
+class Game(val attemptCount: Int, val pegCount: Int, val colorCount: Int) {
+    constructor(parameters: Parameters) : this(parameters.attemptCount, parameters.pegCount, parameters.colorCount)
+
+    private val correctCode = List(pegCount) { kotlin.random.Random.nextInt(colorCount) }
+    private val correctOccurrences = countOccurrences(correctCode)
     var result: Result = Result.UNFINISHED
         private set
     private var attemptsMade = 0
+
+    data class Parameters(val attemptCount: Int = 8, val pegCount: Int = 4, val colorCount: Int = 6)
 
     data class Response(val positionMatches: Int, val colorMatches: Int)
 

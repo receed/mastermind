@@ -1,8 +1,5 @@
 import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.Image
 import java.awt.RenderingHints
-import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import javax.swing.JLabel
 import kotlin.math.max
@@ -14,6 +11,7 @@ class ImageLabel(image: BufferedImage) : JLabel() {
             field = value
             repaint()
         }
+
     private fun getScaledInstance(image: BufferedImage, targetWidth: Int, targetHeight: Int): BufferedImage {
         var result = image
         while (result.width != targetWidth || result.height != targetHeight) {
