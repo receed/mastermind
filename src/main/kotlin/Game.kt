@@ -7,6 +7,8 @@ class Game(val attemptCount: Int, val pegCount: Int, val colorCount: Int) {
     private val correctOccurrences = countOccurrences(correctCode)
     var result: Result = Result.UNFINISHED
         private set
+    val code: List<Int>?
+        get() = correctCode.takeIf { result != Result.UNFINISHED }
     private var attemptsMade = 0
 
     data class Parameters(val attemptCount: Int = 8, val pegCount: Int = 4, val colorCount: Int = 6)

@@ -41,6 +41,7 @@ class Board(private val game: Game, private val application: Application) : JPan
             listOf("#ff6e40", "#eeff41", "#b2ff59", "#18ffff", "#536dfe", "#e040fb", "#ff5252").map { Color.decode(it) }
     }
 
+    val answerPegsPerRow = (game.pegCount + 1) / 2
     private var currentAttempt = 0
     private val guessPegs = Array(game.attemptCount) { Array(game.pegCount) { JRadioButton() } }
     private var currentPeg = 0
@@ -50,7 +51,11 @@ class Board(private val game: Game, private val application: Application) : JPan
         }
     private val answerPegs = Array(game.attemptCount) { Array(game.pegCount) { ImageLabel(noMatchPeg) } }
     private val colorButtons = Array(game.colorCount) { JButton() }
+    private val codePegs = Array(game.pegCount) { JButton() }
     private val guessButton = JButton("Make a guess").apply { isEnabled = false }
+    private val constraints = GridBagConstraints().apply {
+        fill = GridBagConstraints.BOTH
+    }
 
     inner class Guess(pegCount: Int) {
         private val currentPegColors = MutableList<Int?>(pegCount) { null }
@@ -75,10 +80,6 @@ class Board(private val game: Game, private val application: Application) : JPan
         background = Color.decode("#ffe0b2")
         preferredSize = Dimension(B_WIDTH, B_HEIGHT)
         layout = GridBagLayout()
-        val constraints = GridBagConstraints().apply {
-            fill = GridBagConstraints.BOTH
-        }
-        val answerPegsPerRow = (game.pegCount + 1) / 2
         val buttonGroup = ButtonGroup()
         for (row in 0 until game.attemptCount) {
             for (column in 0 until game.pegCount) {
@@ -152,6 +153,7 @@ class Board(private val game: Game, private val application: Application) : JPan
                     guess[pegIndex] = null
                 currentPeg = 0
             } else {
+                showCode()
                 val message = "You ${if (game.result == Game.Result.WIN) "win" else "lose"}. Play another game?"
                 val playAgain =
                     JOptionPane.showConfirmDialog(this, message, "Game is finished", JOptionPane.YES_NO_OPTION)
@@ -176,5 +178,28 @@ class Board(private val game: Game, private val application: Application) : JPan
             weighty = 2.0
         }
         add(guessButton, constraints)
+    }
+
+    private fun showCode() {
+        remove(guessButton)
+        val code = requireNotNull(game.code)
+        for ((pegIndex, peg) in codePegs.withIndex()) {
+            peg.apply {
+                setUI(RoundButtonUI())
+                isEnabled = false
+                foreground = colors[code[pegIndex]]
+            }
+            constraints.apply {
+                gridx = pegIndex
+                gridy = max(game.attemptCount, game.colorCount) * 2
+                gridheight = 1
+                gridwidth = 1
+                weightx = 2.0
+                weighty = 2.0
+                insets = Insets(5, 5, 5, 5)
+            }
+            add(peg, constraints)
+        }
+        validate()
     }
 }
